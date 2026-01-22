@@ -39,7 +39,7 @@ class PostContent(models.Model):
     content = models.FileField(upload_to='posts/')
 
     def __str__(self):
-        return self.post.id
+        return f'Content for Post {self.post.id}'
 
 
 class PostLike(models.Model):
@@ -48,7 +48,7 @@ class PostLike(models.Model):
     like = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.post.id} - {self.like}'
+        return f'Post {self.post.id} - {self.like}'
 
 
 class Comment(models.Model):
@@ -68,7 +68,7 @@ class CommentLike(models.Model):
     like = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.comment.id} - {self.like}'
+        return f'Comment {self.comment.id} - {self.like}'
 
     class Meta:
         unique_together = ('comment', 'user')

@@ -1,7 +1,9 @@
-from .models import (UserProfile, Post, Comment)
+from .models import (UserProfile, Post, Comment, Follow, PostContent,
+                     PostLike, CommentLike)
 from .serializers import (UserProfileListSerializer, UserProfileDetailSerializer,
                           PostListSerializer, PostDetailSerializer, CommentSerializer,
-                          UserSerializer, LoginSerializer)
+                          UserSerializer, LoginSerializer, FollowSerializer,
+                          PostContentSerializer, PostLikeSerializer, CommentLikeSerializer)
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -48,24 +50,22 @@ class LogoutView(generics.GenericAPIView):
 class UserProfileListAPIView(generics.ListAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileListSerializer
-
-    def get_queryset(self):
-        return UserProfile.objects.filter(id=self.request.user.id)
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['username', 'bio']
+    ordering_fields = ['date_registered']
 
 
 class UserProfileDetailAPIView(generics.RetrieveAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileDetailSerializer
 
-    def get_queryset(self):
-        return UserProfile.objects.filter(id=self.request.user.id)
-
 
 class PostListAPIView(generics.ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostListSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ['user']
+    filterset_fields = ['user', 'hashtag']
+    search_fields = ['user__username', 'description', 'hashtag']
     ordering_fields = ['created_date']
 
 
@@ -74,6 +74,38 @@ class PostDetailAPIView(generics.RetrieveAPIView):
     serializer_class = PostDetailSerializer
 
 
+# Новые ViewSet'ы
+class FollowViewSet(viewsets.ModelViewSet):
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['follower', 'following']
+
+
+class PostContentViewSet(viewsets.ModelViewSet):
+    queryset = PostContent.objects.all()
+    serializer_class = PostContentSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['post']
+
+
+class PostLikeViewSet(viewsets.ModelViewSet):
+    queryset = PostLike.objects.all()
+    serializer_class = PostLikeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['post', 'user']
+
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['post', 'user', 'parent']
+    ordering_fields = ['created_date']
+
+
+class CommentLikeViewSet(viewsets.ModelViewSet):
+    queryset = CommentLike.objects.all()
+    serializer_class = CommentLikeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['comment', 'user']
